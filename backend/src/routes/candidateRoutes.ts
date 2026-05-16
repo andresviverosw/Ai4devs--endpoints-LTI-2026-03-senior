@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import { addCandidate, getCandidateById } from '../presentation/controllers/candidateController';
+import { updateCandidateStageHandler } from '../presentation/controllers/candidateStageController';
 
 const router = Router();
+
+router.put('/:id/stage', updateCandidateStageHandler);
 
 router.post('/', async (req, res) => {
   try {
