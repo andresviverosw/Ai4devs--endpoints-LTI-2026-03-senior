@@ -4,6 +4,17 @@ import { PrismaClient } from '@prisma/client';
 import candidateRoutes from './routes/candidateRoutes';
 import positionRoutes from './routes/positionRoutes';
 import { uploadFile } from './application/services/fileUploadService';
+import { AppError, isAppError } from './application/errors/AppError';
+
+function asAppError(err: unknown): AppError | null {
+  if (err instanceof AppError) {
+    return err;
+  }
+  if (isAppError(err)) {
+    return err as AppError;
+  }
+  return null;
+}
 
 declare global {
   namespace Express {
@@ -46,6 +57,12 @@ export function createApp(prisma: PrismaClient): express.Application {
 
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     console.error(err instanceof Error ? err.stack : err);
+    const appErr = asAppError(err);
+    if (appErr) {
+      const status = appErr.status || appErr.statusCode || 500;
+      res.status(status).json(appErr.toJSON());
+      return;
+    }
     res.type('text/plain');
     res.status(500).send('Something broke!');
   });
